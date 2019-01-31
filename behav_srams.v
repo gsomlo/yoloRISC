@@ -14,18 +14,9 @@ module mem_ext(
 	reg [24:0] reg_R0_addr;
 //	reg [63:0] ram [33554431:0];
 	reg [63:0] ram [127:0];
-	initial begin:B0
-		integer i;
-		for (i = 0; i < 128; i++)
-			ram[i] = 64'h0001_0001_0001_0001; // NOP: addi x0, x0, 0
-		// "li sp, 0x80000400" translates into the following opcodes:
-		//   0010011b addiw sp,zero,1
-		//   01f11113 slli  sp,sp,0x1f
-		//   40010113 addi  sp,sp,1024
-		// which should go into memory like this:
-		ram[0] = 64'h01f1_1113_0010_011b;
-		ram[1] = 64'h0001_0001_4001_0113;
-	end
+
+	initial $readmemh("firmware.hex", ram);
+
 	always @(posedge R0_clk)
 		if (R0_en) begin
 			reg_R0_addr <= R0_addr;
