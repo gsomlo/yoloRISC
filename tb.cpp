@@ -20,6 +20,10 @@ int main(int argc, char *argv[])
 	// Initial input signals:
 	dut->clock = 0;
 	dut->reset = 1;
+	dut->uart_rx = 0;
+
+	// keep track of LED output value
+	int led = 0;
 
 	// Tick the clock for a few cycles (or until done):
 	for (t_sim = 0; !Verilated::gotFinish() && t_sim < MAX_TIME; t_sim++) {
@@ -29,8 +33,13 @@ int main(int argc, char *argv[])
 
 		dut->eval();
 
-		if ((t_sim % 10000) == 0)
-			std::cout << "### +1k cycles" << std::endl;
+		if ((t_sim % 100000) == 0)
+			std::cout << "### +10k cycles" << std::endl;
+
+		if (led != dut->led) {
+			led = dut->led;
+			std::cout << "### LED: " << led << std::endl;
+		}
 	}
 
 	// Clean up:

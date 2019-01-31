@@ -58,6 +58,11 @@ endmodule
 // NOTE1: we remove the "RAM" registers altogether, and just forward
 //        data to/from the "hardware".
 module mem_0_ext(
+	input         reset,
+	input         uart_rx,
+	output        uart_tx,
+	output [ 7:0] led,
+
 	input         W0_clk,
 	input  [ 8:0] W0_addr,
 	input         W0_en,
@@ -68,34 +73,54 @@ module mem_0_ext(
 	input         R0_en,
 	output [63:0] R0_data
 );
-	reg [31:0] uart_ckdiv, uart_data;
+	reg [8:0] reg_R0_addr;
 	reg [7:0] reg_led;
 
-	`ifndef SYNTHESIS
+	wire        uart_dat_we, uart_dat_wait;
+	wire [ 3:0] uart_div_we;
+	wire [31:0] uart_dat_do, uart_div_do;
+
+	assign uart_dat_we = (W0_en && W0_addr == 9'h0 && W0_mask[7:4] != 4'h0);
+	assign uart_div_we = (W0_en && W0_addr == 9'h0) ? W0_mask[3:0] : 4'h0;
+
+	simpleuart uart (
+		.clk(W0_clk), // both W0_clk and R0_clk driven by global clock
+		.resetn(~reset),
+
+		.ser_rx(uart_rx),
+		.ser_tx(uart_tx),
+
+		.reg_div_we(uart_div_we),
+		.reg_div_di(W0_data[31: 0]),
+		.reg_div_do(uart_div_do),
+
+		.reg_dat_we(uart_dat_we),
+		.reg_dat_re(R0_en),
+		.reg_dat_di(W0_data[63:32]), // only LSB actually used
+		.reg_dat_do(uart_dat_do),
+		.reg_dat_wait(uart_dat_wait)
+	);
+
 	always @(posedge R0_clk)
 		if (R0_en)
-			$display("## mmio_rd: a=%h (Not Supported!)", R0_addr);
-	`endif // SYNTHESIS
+			reg_R0_addr <= R0_addr;
 	always @(posedge W0_clk)
-		if (W0_en) begin
-			if (W0_addr == 9'h000) begin // uart
-				if (W0_mask[3:0] == 4'hF)
-					uart_ckdiv <= W0_data[31: 0];
-				if (W0_mask[7:4] == 4'hF)
-					uart_data <= W0_data[63:32];
-				`ifndef SYNTHESIS
-				$display("## mmio_wr_uart: d=%h [%b]",
-					W0_data, W0_mask);
-				`endif // SYNTHESIS
-			end
-			if (W0_addr == 9'h001) begin
-				if (W0_mask[0])
-					reg_led <= W0_data[7:0];
-				`ifndef SYNTHESIS
-				$display("## mmio_wr_leds: d=%h [%b]",
-					W0_data[7:0], W0_mask[0]);
-				`endif // SYNTHESIS
-			end
-		end
-	assign R0_data = 64'hFFFF_FFFF_FFFF_FFFF; // MMIO reads not supported!
+		if (W0_en && W0_addr == 9'h1 && W0_mask[0])
+			reg_led <= W0_data[7:0];
+	`ifndef SYNTHESIS
+	always @(posedge W0_clk)
+		// NOTE: With the way mem_0_ext is generated, there is
+		// no simple way to forward the UART's back-pressure
+		// 'wait' signal up the module hierarchy. We'd either
+		// have to connect the UART somewhere higher up said
+		// hierarchy, or implement a buffering mechanism that
+		// would keep retrying the data write until the UART's
+		// 'wait' signal is de-asserted.
+		if (uart_dat_we && uart_dat_wait)
+			$display("## WARNING: dropping UART data write!");
+	`endif // SYNTHESIS
+
+	assign R0_data = (reg_R0_addr == 9'h0) ? {uart_dat_do, uart_div_do} :
+			(reg_R0_addr == 9'h1) ? {56'h0, reg_led} : 64'h0;
+	assign led = reg_led;
 endmodule
