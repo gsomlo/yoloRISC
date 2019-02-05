@@ -20,8 +20,10 @@ module mem_ext(
 	always @(posedge R0_clk)
 		if (R0_en) begin
 			reg_R0_addr <= R0_addr;
+			`ifndef SYNTHESIS
 			$display("## mem_rd: a=%h; d=%h",
 				R0_addr[6:0], ram[R0_addr[6:0]]);
+			`endif // SYNTHESIS
 		end
 	always @(posedge W0_clk)
 		if (W0_en) begin
@@ -41,8 +43,10 @@ module mem_ext(
 				ram[W0_addr[6:0]][55:48] <= W0_data[55:48];
 			if (W0_mask[7])
 				ram[W0_addr[6:0]][63:56] <= W0_data[63:56];
+			`ifndef SYNTHESIS
 			$display("## mem_wr: a=%h d=%h [%b]",
 				W0_addr[6:0], W0_data, W0_mask);
+			`endif // SYNTHESIS
 		end
 	assign R0_data = ram[reg_R0_addr[6:0]];
 endmodule
@@ -67,9 +71,11 @@ module mem_0_ext(
 	reg [31:0] uart_ckdiv, uart_data;
 	reg [7:0] reg_led;
 
+	`ifndef SYNTHESIS
 	always @(posedge R0_clk)
 		if (R0_en)
 			$display("## mmio_rd: a=%h (Not Supported!)", R0_addr);
+	`endif // SYNTHESIS
 	always @(posedge W0_clk)
 		if (W0_en) begin
 			if (W0_addr == 9'h000) begin // uart
@@ -77,14 +83,18 @@ module mem_0_ext(
 					uart_ckdiv <= W0_data[31: 0];
 				if (W0_mask[7:4] == 4'hF)
 					uart_data <= W0_data[63:32];
+				`ifndef SYNTHESIS
 				$display("## mmio_wr_uart: d=%h [%b]",
 					W0_data, W0_mask);
+				`endif // SYNTHESIS
 			end
 			if (W0_addr == 9'h001) begin
 				if (W0_mask[0])
 					reg_led <= W0_data[7:0];
+				`ifndef SYNTHESIS
 				$display("## mmio_wr_leds: d=%h [%b]",
 					W0_data[7:0], W0_mask[0]);
+				`endif // SYNTHESIS
 			end
 		end
 	assign R0_data = 64'hFFFF_FFFF_FFFF_FFFF; // MMIO reads not supported!
