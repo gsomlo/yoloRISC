@@ -51,6 +51,8 @@ endmodule
 // NOTE: size overridden and hardcoded to 4KB in
 //       "trait CanHaveMasterAXI4MMIOPortModuleImp" in source file
 //       rocket-chip/src/main/scala/subsystem/Ports.scala
+// NOTE1: we remove the "RAM" registers altogether, and just forward
+//        data to/from the "hardware".
 module mem_0_ext(
 	input         W0_clk,
 	input  [ 8:0] W0_addr,
@@ -62,31 +64,28 @@ module mem_0_ext(
 	input         R0_en,
 	output [63:0] R0_data
 );
-	reg [ 8:0] reg_R0_addr;
-	reg [63:0] ram [511:0];
-	initial begin:B0
-		integer i;
-		for (i = 0; i < 512; i++)
-			ram[i] = 64'h0010_0013_0010_0013; // load imediate 1
-	end
+	reg [31:0] uart_ckdiv, uart_data;
+	reg [7:0] reg_led;
+
 	always @(posedge R0_clk)
-		if (R0_en) begin
-			reg_R0_addr <= R0_addr;
-			$display("## mmio_rd: a=%h; d=%h",
-				R0_addr, ram[R0_addr]);
-		end
+		if (R0_en)
+			$display("## mmio_rd: a=%h (Not Supported!)", R0_addr);
 	always @(posedge W0_clk)
 		if (W0_en) begin
-			if (W0_mask[0]) ram[W0_addr][ 7: 0] <= W0_data[ 7: 0];
-			if (W0_mask[1]) ram[W0_addr][15: 8] <= W0_data[15: 8];
-			if (W0_mask[2]) ram[W0_addr][23:16] <= W0_data[23:16];
-			if (W0_mask[3]) ram[W0_addr][31:24] <= W0_data[31:24];
-			if (W0_mask[4]) ram[W0_addr][39:32] <= W0_data[39:32];
-			if (W0_mask[5]) ram[W0_addr][47:40] <= W0_data[47:40];
-			if (W0_mask[6]) ram[W0_addr][55:48] <= W0_data[55:48];
-			if (W0_mask[7]) ram[W0_addr][63:56] <= W0_data[63:56];
-			$display("## mmio_wr: a=%h d=%h [%b]",
-				W0_addr, W0_data, W0_mask);
+			if (W0_addr == 9'h000) begin // uart
+				if (W0_mask[3:0] == 4'hF)
+					uart_ckdiv <= W0_data[31: 0];
+				if (W0_mask[7:4] == 4'hF)
+					uart_data <= W0_data[63:32];
+				$display("## mmio_wr_uart: d=%h [%b]",
+					W0_data, W0_mask);
+			end
+			if (W0_addr == 9'h001) begin
+				if (W0_mask[0])
+					reg_led <= W0_data[7:0];
+				$display("## mmio_wr_leds: d=%h [%b]",
+					W0_data[7:0], W0_mask[0]);
+			end
 		end
-	assign R0_data = ram[reg_R0_addr];
+	assign R0_data = 64'hFFFF_FFFF_FFFF_FFFF; // MMIO reads not supported!
 endmodule
