@@ -7,8 +7,10 @@ rkt_config = DefaultConfig
 # rocket-chip test harness top module:
 rkt_topmod = TestHarness
 
+gen_src_dir = rocket-chip/vsim/generated-src
+
 rkt_vlg_pfx = rocket-chip/src/main/resources/vsrc
-rkt_gen_pfx = rocket-chip/vsim/generated-src/freechips.rocketchip.system
+rkt_gen_pfx = $(gen_src_dir)/freechips.rocketchip.system
 
 # rocket-chip dependencies provided as verilog source:
 rkt_vlg_src = $(addprefix $(rkt_vlg_pfx)/, \
@@ -25,9 +27,7 @@ rocket-chip:
 	sed -i '/^_hang:/a \ \ j _start' $@/bootrom/bootrom.S
 	make -C $@/bootrom
 
-$(rkt_vlg_src): rocket-chip
-
-$(rkt_gen_src): rocket-chip
+$(gen_src_dir): rocket-chip
 	# generate verilog from chisel:
 	make RISCV=${HOME}/RISCV -C $</vsim verilog CONFIG=$(rkt_config)
 	# we want to use our own "module mem_(0_)?ext" behavioral srams:
@@ -53,6 +53,10 @@ $(rkt_gen_src): rocket-chip
 		sed -i "/^  $$i /a .reset(reset)," \
 		$(rkt_gen_pfx).$(rkt_config).v ; \
 	done
+
+$(rkt_vlg_src): rocket-chip
+
+$(rkt_gen_src): $(gen_src_dir)
 
 %.elf: %.c start.S sections.lds
 	riscv64-unknown-elf-gcc -mcmodel=medany -ffreestanding -nostdlib \
