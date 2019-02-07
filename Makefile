@@ -2,7 +2,8 @@
 verilog_src = behav_srams.v dtm_stub.v simpleuart.v
 
 # rocket-chip variant to build:
-rkt_config = DefaultConfig
+#rkt_config = DefaultConfig # too big even for 85k ECP5, b/c of FPU logic
+rkt_config = DefaultFPGASmallConfig
 
 # rocket-chip test harness top module:
 rkt_topmod = TestHarness
