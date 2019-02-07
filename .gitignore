@@ -1,0 +1,21 @@
+*.swp
+*.orig
+*.rej
+
+# firmware:
+*.elf
+*.bin
+*.hex
+
+# verilator sim:
+*.vrl
+obj_dir
+
+# synthesis:
+*.json
+*.config
+*.bit
+*.svf
+
+# upstream rocket-chip repo:
+rocket-chip
