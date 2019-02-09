@@ -77,23 +77,25 @@ obj_dir = obj_dir
 obj_lib = $(obj_dir)/V$(rkt_topmod)__ALL.a
 
 $(obj_lib): $(rkt_vlg_src) $(rkt_gen_src) $(verilog_src)
-	verilator_bin --cc $(sim_defs) --top-module $(rkt_topmod) $^
+	verilator_bin --cc $(sim_defs) --trace --top-module $(rkt_topmod) $^
 	make -C $(obj_dir) -f V$(rkt_topmod).mk
 
 verilator_incdir = /usr/share/verilator/include
 
 %.vrl: %.cpp $(obj_lib)
 	g++ -o $@ -I $(obj_dir) -I $(verilator_incdir) \
-		$< $(verilator_incdir)/verilated.cpp $(obj_lib)
+		$< $(verilator_incdir)/verilated.cpp \
+		$(verilator_incdir)/verilated_vcd_c.cpp $(obj_lib)
 
-# run iverilog simulation:
+# run verilator simulation:
 sim: tb.vrl firmware.hex
 	./$<
 
 trellis_dir = /usr/share/prjtrellis
 
 %.json: %.v $(rkt_vlg_src) $(rkt_gen_src) $(verilog_src) firmware.hex
-	yosys -p "synth_ecp5 -json $@ -top chip_top" $(filter %.v, $^)
+	yosys -ql $*_synth.log -p "synth_ecp5 -json $@ -top chip_top" \
+		$(filter %.v, $^)
 
 %.config: %.json versa.lpf
 	nextpnr-ecp5 --json $< --lpf $(word 2,$^) \
@@ -121,7 +123,7 @@ clean:
 		$(addprefix top., json config bit)
 
 cleaner: clean
-	rm -rf tb.vrl firmware.hex top.svf
+	rm -rf tb.vrl tb.vcd firmware.hex top.svf top_synth.log
 
 cleanall: cleaner
 	make RISCV=${HOME}/RISCV -C rocket-chip/vsim clean

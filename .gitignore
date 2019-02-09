@@ -10,12 +10,14 @@
 # verilator sim:
 *.vrl
 obj_dir
+*.vcd
 
 # synthesis:
 *.json
 *.config
 *.bit
 *.svf
+*.log
 
 # upstream rocket-chip repo:
 rocket-chip

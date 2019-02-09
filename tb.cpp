@@ -1,7 +1,8 @@
 #include <iostream>
+#include <verilated_vcd_c.h>
 #include "VTestHarness.h"
 
-#define MAX_TIME 1000000
+#define MAX_TIME 10000000
 
 // Simulation time:
 vluint64_t t_sim;
@@ -13,9 +14,15 @@ int main(int argc, char *argv[])
 {
 	// Initialize Verilator:
 	Verilated::commandArgs(argc, argv);
+	Verilated::traceEverOn(true);
 
 	// Instantiate DUT:
 	VTestHarness *dut = new VTestHarness;
+
+	// Initialize tracing:
+	VerilatedVcdC *m_trace = new VerilatedVcdC;
+	dut->trace(m_trace, 99);
+	m_trace->open("tb.vcd");
 
 	// Initial input signals:
 	dut->clock = 0;
@@ -32,6 +39,7 @@ int main(int argc, char *argv[])
 		if ((t_sim % 10) == 6) dut->clock = 0;
 
 		dut->eval();
+		m_trace->dump(t_sim);
 
 		if ((t_sim % 100000) == 0)
 			std::cout << "### +10k cycles" << std::endl;
@@ -43,6 +51,8 @@ int main(int argc, char *argv[])
 	}
 
 	// Clean up:
+	m_trace->close();
+	m_trace = NULL;
 	dut->final();
 	delete dut;
 
