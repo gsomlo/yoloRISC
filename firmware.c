@@ -4,11 +4,18 @@
 #define reg_uart_data   (*(volatile uint32_t*)0x60000004)
 #define reg_led         (*(volatile  uint8_t*)0x60000008)
 
+//#define SIMULATION
+
 void putchar(char c)
 {
 	if (c == '\n')
 		putchar('\r');
 	reg_uart_data = c;
+#ifndef SIMULATION
+	// FIXME [gls]: minimum value we get away here should inform the
+	// size of the buffer we need to use in the mmio behav_sram module!
+	for (volatile int i = 0; i < 2000; i++);
+#endif
 }
 
 void print(const char *p)
@@ -27,12 +34,11 @@ void print_uint_bin(unsigned int num)
 // Simulation is much slower, so we want a much shorter delay.
 // Uncomment the following line to see LED activity during simulation:
 
-//#define SIMULATION
 
 #ifdef SIMULATION
   #define DELAY 5
 #else // FPGA synthesis
-  #define DELAY 200000
+  #define DELAY 16000
 #endif
 void delay(void)
 {
