@@ -15,7 +15,6 @@ obj_dir
 # synthesis:
 *.json
 *.config
-*.bit
 *.svf
 *.log
 

@@ -91,7 +91,7 @@ verilator_incdir = /usr/share/verilator/include
 sim: tb.vrl firmware.hex
 	./$<
 
-trellis_dir = /usr/share/prjtrellis
+trellis_dir = /usr/share/trellis
 
 %.json: %.v $(rkt_vlg_src) $(rkt_gen_src) $(verilog_src) firmware.hex
 	yosys -ql $*_synth.log -p "synth_ecp5 -json $@ -top chip_top" \
@@ -102,25 +102,22 @@ trellis_dir = /usr/share/prjtrellis
 		--basecfg $(trellis_dir)/misc/basecfgs/empty_lfe5um-45f.config \
 		--um-45k --freq 10 --textcfg $@
 
-%.bit: %.config
-	ecppack $< $@
-
-%.svf: %.bit
-	$(trellis_dir)/tools/bit_to_svf.py $< $@
+%.svf: %.config
+	ecppack $< --svf $@
 
 # program board (via jtag):
 prog: top.svf
 	openocd -f $(trellis_dir)/misc/openocd/ecp5-versa5g.cfg \
 		-c "transport select jtag; init; svf $<; exit"
 
-# no implicit removal of intermediate targets (.elf .bin .json .config .bit):
+# no implicit removal of intermediate targets (.elf .bin .json .config):
 .SECONDARY:
 
 # explicitly clean intermediate targets only:
 clean:
 	rm -rf $(obj_dir) \
 		$(addprefix firmware., elf bin) \
-		$(addprefix top., json config bit)
+		$(addprefix top., json config)
 
 cleaner: clean
 	rm -rf tb.vrl tb.vcd firmware.hex top.svf top_synth.log
