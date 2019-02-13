@@ -97,10 +97,17 @@ trellis_dir = /usr/share/trellis
 	yosys -ql $*_synth.log -p "synth_ecp5 -json $@ -top chip_top" \
 		$(filter %.v, $^)
 
+# I have a "bad" LFEUM5G-45F-VERSA-EVN, with a non-5G capable 45k ECP5 chip!
 %.config: %.json versa.lpf
+ifdef BadVersa
 	nextpnr-ecp5 --json $< --lpf $(word 2,$^) \
 		--basecfg $(trellis_dir)/misc/basecfgs/empty_lfe5um-45f.config \
 		--um-45k --freq 10 --textcfg $@
+else
+	nextpnr-ecp5 --json $< --lpf $(word 2,$^) \
+		--basecfg $(trellis_dir)/misc/basecfgs/empty_lfe5um5g-45f.config \
+		--um5g-45k --freq 10 --textcfg $@
+endif
 
 %.svf: %.config
 	ecppack $< --svf $@
