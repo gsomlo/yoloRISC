@@ -38,7 +38,7 @@ void print_uint_bin(unsigned int num)
 #ifdef SIMULATION
   #define DELAY 5
 #else // FPGA synthesis
-  #define DELAY 16000
+  #define DELAY 64000
 #endif
 void delay(void)
 {
