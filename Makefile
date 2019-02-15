@@ -101,11 +101,9 @@ trellis_dir = /usr/share/trellis
 %.config: %.json versa.lpf
 ifdef BadVersa
 	nextpnr-ecp5 --json $< --lpf $(word 2,$^) \
-		--basecfg $(trellis_dir)/misc/basecfgs/empty_lfe5um-45f.config \
 		--um-45k --freq 10 --textcfg $@
 else
 	nextpnr-ecp5 --json $< --lpf $(word 2,$^) \
-		--basecfg $(trellis_dir)/misc/basecfgs/empty_lfe5um5g-45f.config \
 		--um5g-45k --freq 10 --textcfg $@
 endif
 
