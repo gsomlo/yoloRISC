@@ -77,7 +77,7 @@ obj_dir = obj_dir
 obj_lib = $(obj_dir)/V$(rkt_topmod)__ALL.a
 
 $(obj_lib): $(rkt_vlg_src) $(rkt_gen_src) $(verilog_src)
-	verilator_bin --cc $(sim_defs) --trace --top-module $(rkt_topmod) $^
+	verilator --cc $(sim_defs) --trace --top-module $(rkt_topmod) $^
 	make -C $(obj_dir) -f V$(rkt_topmod).mk
 
 verilator_incdir = /usr/share/verilator/include
