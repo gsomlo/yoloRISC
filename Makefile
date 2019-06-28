@@ -23,7 +23,7 @@ rkt_gen_src = $(addprefix $(rkt_gen_pfx)., \
 
 rocket-chip:
 	# grab the upstream sources:
-	git clone --recursive https://github.com/freechipsproject/$@
+	git clone --recursive https://github.com/chipsalliance/$@
 	# get bootrom to jump to DRAM_BASE (instead of spinning inside _hang):
 	sed -i '/^_hang:/a \ \ j _start' $@/bootrom/bootrom.S
 	make -C $@/bootrom
