@@ -7,7 +7,7 @@ module chip_top(
 );
 	wire clock;
 
-	pll_100_20 pll(
+	pll_100_55 pll(
 		.clki(clkin),
 		.clko(clock),
 		.locked(),
@@ -32,21 +32,21 @@ module chip_top(
 	assign led = ~soc_led;
 endmodule // chip_top
 
-module pll_100_20(
+module pll_100_55(
 	input  clki,
 	output clko,
 	output locked,
 );
 	wire clkfb;
-	(* ICP_CURRENT="6" *)
-	(* LPF_RESISTOR="16" *)
+	(* ICP_CURRENT="12" *)
+	(* LPF_RESISTOR="8" *)
 	(* MFG_ENABLE_FILTEROPAMP="1" *)
 	(* MFG_GMCREF_SEL="2" *)
 	EHXPLLL #(
-		.CLKI_DIV(5),
-		.CLKFB_DIV(1),
-		.CLKOP_DIV(30),
-		.CLKOP_CPHASE(15),
+		.CLKI_DIV(20),
+		.CLKFB_DIV(11),
+		.CLKOP_DIV(11),
+		.CLKOP_CPHASE(5),
 		.FEEDBK_PATH("INT_OP"),
 	) pll_i (
 		.CLKI(clki),
@@ -63,4 +63,4 @@ module pll_100_20(
 		.LOCK(locked),
 		.CLKINTFB(clkfb),
 	);
-endmodule // pll_100_20
+endmodule // pll_100_55

@@ -36,9 +36,9 @@ void print_uint_bin(unsigned int num)
 
 
 #ifdef SIMULATION
-  #define DELAY 5
+  #define DELAY 0x05
 #else // FPGA synthesis
-  #define DELAY 256000
+  #define DELAY 0x200000
 #endif
 void delay(void)
 {
@@ -47,8 +47,8 @@ void delay(void)
 
 int main(int argc, char *argv[])
 {
-	// 115200 baud at 20MHz
-	reg_uart_clkdiv = 174;
+	// 115200 baud at 55MHz
+	reg_uart_clkdiv = 477;
 
 	for (unsigned int i = 0;; i++) {
 		print("Hello world!!!\n");
