@@ -94,7 +94,8 @@ sim: tb.vrl firmware.hex
 trellis_dir = /usr/share/trellis
 
 %.json: %.v $(rkt_vlg_src) $(rkt_gen_src) $(verilog_src) firmware.hex
-	yosys -ql $*_synth.log -p "synth_ecp5 -json $@ -top chip_top" \
+	yosys -ql $*_synth.log \
+		-p "synth_ecp5 -nowidelut -abc9 -json $@ -top chip_top" \
 		$(filter %.v, $^)
 
 %.config: %.json versa.lpf
