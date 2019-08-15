@@ -100,7 +100,7 @@ trellis_dir = /usr/share/trellis
 
 %.config: %.json versa.lpf
 	nextpnr-ecp5 --json $< --lpf $(word 2, $^) \
-		--um5g-45k --freq 55 --textcfg $@
+		--package CABGA381 --um5g-45k --freq 55 --textcfg $@
 
 %.svf: %.config
 	ecppack $< --svf $@
